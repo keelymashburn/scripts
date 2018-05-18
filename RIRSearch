@@ -1,0 +1,72 @@
+import urllib2
+import argparse
+import string
+import json
+
+def makequery (querystring):
+    header = {'Accept': 'application/json'}
+    req = urllib2.Request(querystring, None, header)
+    response = urllib2.urlopen(req)
+    answer = response.read()
+    return answer
+    
+def searcharin (ipaddr):
+    print ("Querying ARIN for " + ipaddr)
+    querystring = ''.join(['http://whois.arin.net/rest/ip/',ipaddr])
+    answer = makequery(querystring)
+    fred = json.loads(answer)
+    if answer.find("customerRef") > -1:
+        CompanyName = fred["net"]["customerRef"]["@name"]
+        print "Company Name = " + CompanyName
+        CustomerURL = fred["net"]["customerRef"]["$"]
+        print "Customer URL = " + CustomerURL
+    else:
+        print "No customerRef node"
+        CompanyName = fred["net"]["orgRef"]["@name"]
+        print "Company Name = " + CompanyName
+        CustomerURL = fred["net"]["orgRef"]["$"]
+        print "Customer URL = " + CustomerURL
+    answer2 = makequery(CustomerURL)
+    gary = json.loads(answer2)
+    if answer2.find("customer") > -1:
+        Country = gary["customer"]["iso3166-1"]["name"]["$"]
+        print "Country = " + Country
+        City = gary["customer"]["city"]["$"]
+        print "City = " + City
+    else:
+        print "No customer node"
+        Country = gary["org"]["iso3166-1"]["name"]["$"]
+        print "Country = " + Country
+        City = gary["org"]["city"]["$"]
+        print "City = " + City
+    return 
+    
+def searching (ipaddr): 
+    print ("Querying RIRs for " + ipaddr)   
+    querystring = ''.join(['http://stat.ripe.net/data/whois/data.json?resource=',ipaddr])
+    answer = makequery(querystring)
+    fred = json.loads(answer)
+    #print fred
+    for item in fred:
+        print value["country"]
+    #gary = fred["data"]["records"][0][3]
+    #CountryName =gary["value"]
+    #print "Country = " + CountryName
+    #print "Company Name = " + CompanyName
+    #CustomerURL = fred["objects"]["object"]["link"]["href"]
+    #print "Customer URL = " + CustomerURL
+    #answer2 = makequery(CustomerURL)
+    #gary = json.loads(answer2)
+    #Country = fred["objects"]["object"][0] 
+    #print Country
+    return 
+
+def main():
+    parser = argparse.ArgumentParser(description='Search IP Address.')
+    parser.add_argument('address',type = str, nargs =1)
+    args = parser.parse_args()
+    #searcharin(args.address[0])
+    searching(args.address[0])
+
+if __name__== "__main__":
+    main()
