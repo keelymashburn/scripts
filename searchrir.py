@@ -21,14 +21,19 @@ def parse_afrinic(json, irrjson, data):
                 data['country'] = entry['value']            
             if str(entry['key']).lower()=='city':
                 data['city'] = entry['value']
+    counter = 0
     for item in irrjson:
         for entry in item:
             if str(entry['key']).lower()=='descr':
-                data['descr'] = entry['value']
-            
+                keyname = ''.join(['descr',str(counter)])
+                data[keyname] = entry['value']
+            if str(entry['key']).lower()=='route':
+                keyname = ''.join(['route',str(counter)])
+                data[keyname] = entry['value']
+            counter+=1    
     return
 
-def parse_apnic(json, data):
+def parse_apnic(json, irrjson, data):
     for item in json:
         # print ''.join(["Total record sets found: ", str(len(json))])
         for entry in item:
@@ -40,10 +45,17 @@ def parse_apnic(json, data):
             if str(entry['key']).lower()=='country':
                 data['country'] = entry['value']            
             if str(entry['key']).lower()=='city':
-                data['city'] = entry['value'] 
+                data['city'] = entry['value']
+    counter = 0
+    for item in irrjson:
+        for entry in item:
+            if str(entry['key']).lower()=='route':
+                keyname = ''.join(['route',str(counter)])
+                data[keyname] = entry['value']
+                counter+=1
     return
 
-def parse_arin(json, data):
+def parse_arin(json, irrjson, data):
     for item in json:
         # print ''.join(["Total record sets found: ", str(len(json))])
         for entry in item:
@@ -55,7 +67,14 @@ def parse_arin(json, data):
             if str(entry['key']).lower()=='country':
                 data['country'] = entry['value']            
             if str(entry['key']).lower()=='city':
-                data['city'] = entry['value']            
+                data['city'] = entry['value']
+    counter = 0
+    for item in irrjson:
+        for entry in item:
+            if str(entry['key']).lower()=='route':
+                keyname = ''.join(['route',str(counter)])
+                data[keyname] = entry['value']
+                counter+=1
 
 def parse_lacnic(json, data):
     for item in json:
@@ -69,7 +88,7 @@ def parse_lacnic(json, data):
             if str(entry['key']).lower()=='country':
                 data['country'] = entry['value']            
             if str(entry['key']).lower()=='city':
-                data['city'] = entry['value'] 
+                data['city'] = entry['value']
     return
 
 def parse_ripe(json, irrjson, data):
@@ -89,7 +108,10 @@ def parse_ripe(json, irrjson, data):
             if str(entry['key']).lower()=='descr':
                 keyname = ''.join(['descr',str(counter)])
                 data[keyname] = entry['value']
-                counter+=1
+            if str(entry['key']).lower()=='route':
+                keyname = ''.join(['route',str(counter)])
+                data[keyname] = entry['value']
+            counter+=1
     return
 
 def print_results(data):
@@ -108,15 +130,15 @@ def searching(ipaddr):
     records = response["data"]["records"]
     records2 = response["data"]["irr_records"]
     if rir == 'arin':
-        parse_arin(records, datadict)
+        parse_arin(records, records2, datadict)
     elif rir == 'ripe':
         parse_ripe(records, records2, datadict)
     elif rir == 'apnic':
-        parse_apnic(records, datadict)
+        parse_apnic(records, records2, datadict)
     elif rir == 'afrinic':
         parse_afrinic(records, records2, datadict)
     elif rir == 'lacnic':
-        parse_lacnic(records, datadict)
+        parse_lacnic(records, records2, datadict)
     else:
         print 'Error'
                 
