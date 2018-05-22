@@ -9,57 +9,120 @@ def makequery (querystring):
     response = urllib2.urlopen(req)
     answer = response.read()
     return answer
-    
+	
+def parse_afrinic(json, irrjson, data):
+    for item in json:
+        # print ''.join(["Total record sets found: ", str(len(json))])
+        for entry in item:
+            # print ''.join(["Total data elements found: ", str(len(item))])
+            # Extract data labels from key field
+            # Add data of interest to data dictionary
+            if str(entry['key']).lower()=='country':
+                data['country'] = entry['value']            
+            if str(entry['key']).lower()=='city':
+                data['city'] = entry['value']
+    for item in irrjson:
+        for entry in item:
+            if str(entry['key']).lower()=='descr':
+                data['descr'] = entry['value']
+            
+    return
+
+def parse_apnic(json, data):
+    for item in json:
+        # print ''.join(["Total record sets found: ", str(len(json))])
+        for entry in item:
+            # print ''.join(["Total data elements found: ", str(len(item))])
+            # Extract data labels from key field
+            # Add data of interest to data dictionary
+            if str(entry['key']).lower()=='descr':
+                data['descr'] = entry['value']
+            if str(entry['key']).lower()=='country':
+                data['country'] = entry['value']            
+            if str(entry['key']).lower()=='city':
+                data['city'] = entry['value'] 
+    return
+
+def parse_arin(json, data):
+    for item in json:
+        # print ''.join(["Total record sets found: ", str(len(json))])
+        for entry in item:
+            # print ''.join(["Total data elements found: ", str(len(item))])
+            # Extract data labels from key field
+            # Add data of interest to data dictionary
+            if str(entry['key']).lower()=='orgname':
+                data['orgname'] = entry['value']
+            if str(entry['key']).lower()=='country':
+                data['country'] = entry['value']            
+            if str(entry['key']).lower()=='city':
+                data['city'] = entry['value']            
+
+def parse_lacnic(json, data):
+    for item in json:
+        # print ''.join(["Total record sets found: ", str(len(json))])
+        for entry in item:
+            # print ''.join(["Total data elements found: ", str(len(item))])
+            # Extract data labels from key field
+            # Add data of interest to data dictionary
+            if str(entry['key']).lower()=='owner':
+                data['owner'] = entry['value']
+            if str(entry['key']).lower()=='country':
+                data['country'] = entry['value']            
+            if str(entry['key']).lower()=='city':
+                data['city'] = entry['value'] 
+    return
+
+def parse_ripe(json, irrjson, data):
+    for item in json:
+        # print ''.join(["Total record sets found: ", str(len(json))])
+        for entry in item:
+            # print ''.join(["Total data elements found: ", str(len(item))])
+            # Extract data labels from key field
+            # Add data of interest to data dictionary
+            if str(entry['key']).lower()=='country':
+                data['country'] = entry['value']            
+            if str(entry['key']).lower()=='city':
+                data['city'] = entry['value']
+    counter = 0
+    for item in irrjson:
+        for entry in item:
+            if str(entry['key']).lower()=='descr':
+                keyname = ''.join(['descr',str(counter)])
+                data[keyname] = entry['value']
+                counter+=1
+    return
+
+def print_results(data):
+    for key in data:
+        print ''.join(['[**] ',str(key), ' : ', str(data[key])])
+        
 def searching(ipaddr): 
-    print ("Querying RIRs for " + ipaddr)   
+    print ''.join(["[*] ","Querying RIPEstat for ", ipaddr])   
     querystring = ''.join(['http://stat.ripe.net/data/whois/data.json?resource=',ipaddr])
     answer = makequery(querystring)
-    fred = json.loads(answer)
-    rir = fred["data"]["authorities"][0]
-    print ''.join(["Authoritative RIR:  ", rir])
+    response = json.loads(answer)
+    # print response
+    rir = response["data"]["authorities"][0]
+    datadict = {'rir':rir}
     # Based on RIR, invoke correct parser
-    # Make these into their own functions later
+    records = response["data"]["records"]
+    records2 = response["data"]["irr_records"]
     if rir == 'arin':
-        # these are the keys i want: orgname, city, country
-        gary = fred["data"]["records"]
-        for item in gary:
-            for entry in item:
-                if entry["key"]=="Country":
-                    print "Country = " + entry["value"]
-                if entry["key"]=="City":
-                    print "City = " + entry["value"]
+        parse_arin(records, datadict)
     elif rir == 'ripe':
-        return
+        parse_ripe(records, records2, datadict)
     elif rir == 'apnic':
-        return
+        parse_apnic(records, datadict)
     elif rir == 'afrinic':
-        return
+        parse_afrinic(records, records2, datadict)
     elif rir == 'lacnic':
-        return
+        parse_lacnic(records, datadict)
     else:
-        print 'Sum Ting Wong'
-    
-           
-
-   
-
-
+        print 'Error'
                 
-    #CompanyName = gary["value"]
-    #print "Company Name = " + CompanyName
-    
-    #gary = fred["data"]["records"][0]["country"] # key is country, need value
-    #CountryName = gary["value"]
-    #print "Country = " + CountryName
-    
-    #CustomerURL = fred["data"]["records"][0]["country"]
-    #print "Customer URL = " + CustomerURL
-    #answer2 = makequery(CustomerURL)
-    #gary = json.loads(answer2)
-    #Country = fred["objects"]["object"][0] 
-    #print Country
+    print_results(datadict)
     return 
-
+    
 def main():
     parser = argparse.ArgumentParser(description='Search IP Address.')
     parser.add_argument('address',type = str, nargs =1)
