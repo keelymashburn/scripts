@@ -47,7 +47,7 @@ def searching(ipaddr):
     querystring = ''.join(['http://stat.ripe.net/data/whois/data.json?resource=',ipaddr])
     answer = makequery(querystring)
     response = json.loads(answer)
-    print response
+    # print response
     rir = response["data"]["authorities"][0]
     datadict = {'rir':rir}
     records = response["data"]["records"]
